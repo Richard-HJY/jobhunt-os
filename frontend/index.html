@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>求职助手</title>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- PDF.js CDN for PDF text extraction -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app-container">
+    <!-- 导航栏 -->
+    <div class="navbar">
+        <div class="logo-area">
+            <div class="logo-icon">J</div>
+            <span class="logo-text">求职助手</span>
+        </div>
+        <div class="nav-links">
+            <a data-page="home" class="active">首页</a>
+            <a data-page="resume-mgr">简历管理</a>
+            <a data-page="delivery">投递看板</a>
+            <a data-page="calendar">日程看板</a>
+        </div>
+        <div class="user-area">
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i data-lucide="menu" style="width:24px;height:24px;"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 移动端菜单 -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-header">
+            <span style="font-weight:600;font-size:18px;">菜单</span>
+            <button class="mobile-menu-close" id="mobileMenuClose">&times;</button>
+        </div>
+        <div class="mobile-nav-links">
+            <a data-page="home" class="active">
+                <i data-lucide="home"></i>
+                <span>首页</span>
+            </a>
+            <a data-page="resume-mgr">
+                <i data-lucide="file-text"></i>
+                <span>简历管理</span>
+            </a>
+            <a data-page="delivery">
+                <i data-lucide="send"></i>
+                <span>投递看板</span>
+            </a>
+            <a data-page="calendar">
+                <i data-lucide="calendar"></i>
+                <span>日程看板</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- ========== 首页 ========== -->
+    <div id="page-home" class="page active">
+        <div class="main-content">
+            <!-- 欢迎区域 -->
+            <div class="home-welcome">
+                <div>
+                    <div class="welcome-greeting" id="welcomeGreeting">你好</div>
+                </div>
+                <div class="quick-actions">
+                    <button class="btn btn-outline" onclick="openNewDelivery()"><i data-lucide="plus" style="width:15px;height:15px;"></i>新建投递</button>
+                    <button class="btn btn-primary" onclick="navigateTo('calendar');document.getElementById('newEventBtn').click()"><i data-lucide="calendar-plus" style="width:15px;height:15px;"></i>添加日程</button>
+                </div>
+            </div>
+            <!-- 统计卡片 -->
+            <div class="stats-grid" id="homeStatsGrid"></div>
+            <!-- 两列内容 -->
+            <div class="two-columns">
+                <div class="info-card">
+                    <div class="card-header">
+                        <h3><i data-lucide="calendar"></i>近期日程</h3>
+                        <a class="view-all" onclick="navigateTo('calendar')">查看全部 <i data-lucide="chevron-right" style="width:14px;height:14px;"></i></a>
+                    </div>
+                    <div class="event-timeline" id="homeUpcomingEvents"></div>
+                </div>
+                <div class="info-card">
+                    <div class="card-header">
+                        <h3><i data-lucide="clock"></i>待跟进投递</h3>
+                        <a class="view-all" onclick="navigateTo('delivery')">查看全部 <i data-lucide="chevron-right" style="width:14px;height:14px;"></i></a>
+                    </div>
+                    <div class="followup-list-new" id="homeFollowupList"></div>
+                </div>
+            </div>
+            <!-- 数据分析区域 -->
+            <div class="home-analytics-section">
+                <div class="analytics-header">
+                    <h2 style="font-size:18px;font-weight:700;color:var(--gray-800);display:flex;align-items:center;gap:8px;"><i data-lucide="bar-chart-3" style="width:20px;height:20px;color:var(--primary-500);"></i>数据分析</h2>
+                    <div class="analytics-filters">
+                        <select id="homeDataDateRange" style="padding:6px 10px;border:1px solid var(--gray-200);border-radius:var(--radius-sm);font-size:12px;background:white;color:var(--gray-700);">
+                            <option value="all">全部</option><option value="7">近7天</option><option value="30" selected>近30天</option><option value="90">近90天</option>
+                        </select>
+                        <select id="homeDataJob" style="padding:6px 10px;border:1px solid var(--gray-200);border-radius:var(--radius-sm);font-size:12px;background:white;color:var(--gray-700);">
+                            <option value="all">全部岗位</option>
+                        </select>
+                        <select id="homeDataChannel" style="padding:6px 10px;border:1px solid var(--gray-200);border-radius:var(--radius-sm);font-size:12px;background:white;color:var(--gray-700);">
+                            <option value="all">全部渠道</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="analytics-funnel" id="homeFunnelContainer"></div>
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <div class="analytics-card-header"><i data-lucide="trending-up" style="width:16px;height:16px;color:var(--primary-500);"></i><span>渠道效果排行</span></div>
+                        <div id="homeChannelTable"></div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="analytics-card-header"><i data-lucide="file-bar-chart" style="width:16px;height:16px;color:#8b5cf6;"></i><span>简历效能分析</span></div>
+                        <div id="homeResumeEffectTable"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 简历管理 ========== -->
+    <div id="page-resume-mgr" class="page">
+        <div class="main-content">
+            <div class="page-header"><h1>简历管理</h1></div>
+            <!-- 在线简历 -->
+            <div class="resume-section">
+                <div class="section-header">
+                    <h2><i data-lucide="file-text"></i>在线简历</h2>
+                </div>
+                <div id="masterResumeCard"></div>
+            </div>
+            <!-- 个性化简历 -->
+            <div class="resume-section">
+                <div class="section-header">
+                    <h2><i data-lucide="layers"></i>个性化简历</h2>
+                    <button class="add-btn" id="createCustomBtn"><i data-lucide="plus" style="width:13px;height:13px;"></i>从在线简历新建定制版</button>
+                </div>
+                <div class="resume-grid" id="resumeGrid"></div>
+                <div class="upload-area-resume" id="uploadPdfArea">
+                    <i data-lucide="upload-cloud"></i>
+                    <div class="upload-title">点击或拖拽上传 PDF 简历</div>
+                    <div class="upload-sub">仅支持 PDF 格式文件</div>
+                    <input type="file" id="resumeFileInput" accept=".pdf" style="display:none">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 投递看板 ========== -->
+    <div id="page-delivery" class="page">
+        <div class="main-content" style="display:flex;flex-direction:column;height:calc(100vh - 64px);overflow:hidden;">
+            <div class="delivery-sticky-header">
+                <div class="page-header flex-header">
+                    <h1>投递看板</h1>
+                    <div class="action-bar" style="display:flex;gap:10px;align-items:center;">
+                        <div class="view-toggle" id="deliveryViewToggle">
+                            <button class="view-toggle-btn active" data-view="kanban" id="kanbanViewBtn"><i data-lucide="layout-dashboard"></i>看板</button>
+                            <button class="view-toggle-btn" data-view="list" id="listViewBtn"><i data-lucide="list"></i>列表</button>
+                        </div>
+                        <button class="btn btn-primary" id="newDeliveryBtn"><i data-lucide="plus" style="width:15px;height:15px;"></i>新建投递</button>
+                    </div>
+                </div>
+                <div class="batch-bar" id="batchBar">
+                    <div class="batch-info">已选择 <span id="selectedCount">0</span> 条</div>
+                    <div class="batch-actions">
+                        <button class="btn btn-outline" style="color:var(--error-600);border-color:var(--error-200);" id="batchDeleteConfirmBtn">删除</button>
+                        <button class="btn btn-outline" id="cancelBatchBtn">取消</button>
+                    </div>
+                </div>
+                <div class="filter-bar">
+                    <div class="filter-group"><label>公司</label><input type="text" id="filterCompany" placeholder="搜索公司..."></div>
+                    <div class="filter-group"><label>阶段</label>
+                        <select id="filterStage"><option value="all">全部阶段</option></select>
+                    </div>
+                    <div class="filter-group"><label>状态</label>
+                        <select id="filterStatus"><option value="all">全部状态</option><option value="进行中">进行中</option><option value="已offer">已offer</option><option value="已接受">已接受</option><option value="已拒绝">已拒绝</option><option value="已淘汰">已淘汰</option></select>
+                    </div>
+                    <div class="filter-group"><label>渠道</label>
+                        <select id="filterChannel"><option value="all">全部渠道</option></select>
+                    </div>
+                    <div class="filter-group"><label>时间范围</label>
+                        <select id="filterDateRange"><option value="all">全部</option><option value="7">近7天</option><option value="30" selected>近30天</option><option value="90">近90天</option></select>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn btn-outline" id="applyFilterBtn" style="padding:7px 14px;font-size:13px;">筛选</button>
+                        <button class="reset-filter-btn" id="resetFilterBtn">重置</button>
+                    </div>
+                </div>
+            </div>
+            <div id="kanbanColHeaders" style="display:none;"></div>
+            <div class="delivery-scroll-body">
+            <!-- 看板视图 -->
+            <div id="kanbanView">
+                <!-- 左右滚动按钮 overlay：sticky定位，浮于内容上方 -->
+                <div class="kanban-nav-overlay" id="kanbanNavOverlay">
+                    <button id="kanbanNavLeft" class="kanban-nav-btn-inline" title="向左滑动" style="display:none;">
+                        <i data-lucide="chevron-left" style="width:20px;height:20px;"></i>
+                    </button>
+                    <button id="kanbanNavRight" class="kanban-nav-btn-inline" title="向右滑动" style="display:none;">
+                        <i data-lucide="chevron-right" style="width:20px;height:20px;"></i>
+                    </button>
+                </div>
+                <div id="kanbanScrollWrap" style="overflow-x:auto;overflow-y:visible;padding:4px 2px 8px;scroll-behavior:smooth;"><div class="kanban-board" id="kanbanBoard"></div></div>
+            </div>
+            <!-- 列表视图 -->
+            <div id="listView" style="display:none;">
+                <div class="table-container">
+                    <table class="delivery-table">
+                        <thead><tr>
+                            <th class="checkbox-col"><input type="checkbox" id="selectAllCheckbox"></th>
+                            <th>公司 / 岗位</th><th>工作地点</th><th>投递日期</th><th>当前阶段</th><th>状态</th><th>渠道</th><th>操作</th>
+                        </tr></thead>
+                        <tbody id="deliveryTableBody"></tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <div class="pagination-info" id="paginationInfo">共 0 条</div>
+                    <div class="pagination-buttons" id="paginationButtons"></div>
+                </div>
+            </div>
+            </div><!-- /delivery-scroll-body -->
+        </div>
+    </div>
+
+    <!-- ========== 日程看板 ========== -->
+    <div id="page-calendar" class="page">
+        <div class="main-content">
+            <div class="page-header flex-header">
+                <h1>日程看板</h1>
+                <div class="action-bar" style="display:flex;gap:10px;align-items:center;">
+                    <div class="view-toggle" id="calViewToggle">
+                        <button class="view-toggle-btn active" data-view="week" id="weekViewBtn"><i data-lucide="calendar-days"></i>周</button>
+                        <button class="view-toggle-btn" data-view="month" id="monthViewBtn"><i data-lucide="calendar"></i>月</button>
+                    </div>
+                    <button class="btn btn-primary" id="newEventBtn"><i data-lucide="plus" style="width:15px;height:15px;"></i>新建日程</button>
+                </div>
+            </div>
+            <!-- 今日提醒移至日历上方 -->
+            <div class="reminder-section" style="margin-bottom:20px;margin-top:0;">
+                <div class="reminder-header"><i data-lucide="bell" style="width:16px;height:16px;color:var(--warning-500);"></i><h3>今日提醒</h3></div>
+                <div class="reminder-list" id="reminderList"></div>
+            </div>
+            <div id="calendarWrapper"></div>
+        </div>
+    </div>
+
+    <!-- ========== 在线简历编辑器（子页） ========== -->
+    <div id="page-resume-editor" class="page">
+        <div class="resume-editor-wrap">
+            <div class="editor-header">
+                <div class="header-left">
+                    <span class="back-link" id="editorBackBtn"><i data-lucide="chevron-left"></i>返回</span>
+                    <div class="editor-divider"></div>
+                    <div class="editor-title-group">
+                        <span class="resume-title-badge" id="editorTitleBadge">在线简历</span>
+                        <button class="title-rename-btn" id="editorRenameBtn" title="重命名简历"><i data-lucide="pencil"></i></button>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-outline" id="saveAllBtn"><i data-lucide="save" style="width:15px;height:15px;"></i>保存</button>
+                    <button class="btn btn-outline" id="exportEditorPdfBtn"><i data-lucide="download" style="width:15px;height:15px;"></i>导出PDF</button>
+                </div>
+            </div>
+            <div class="editor-body">
+                <div class="outline-panel">
+                    <div class="outline-label">内容导航</div>
+                    <ul class="outline-nav">
+                        <li><a data-section="basicInfoSec"><i data-lucide="user"></i>基本信息</a></li>
+                        <li><a data-section="educationSec"><i data-lucide="graduation-cap"></i>学历信息</a></li>
+                        <li><a data-section="workSec"><i data-lucide="briefcase"></i>工作经历</a></li>
+                        <li><a data-section="projectSec"><i data-lucide="layers"></i>项目经历</a></li>
+                        <li><a data-section="certSec"><i data-lucide="award"></i>证书 &amp; 技能</a></li>
+                    </ul>
+                </div>
+                <div class="content-panel" id="editorContentPanel">
+                    <section id="basicInfoSec" class="resume-section-editor">
+                        <div class="editor-section-header">
+                            <div class="editor-section-title"><i data-lucide="user"></i>基本信息</div>
+                        </div>
+                        <div class="basic-info-wrapper">
+                            <div class="basic-info-avatar">
+                                <img id="avatarImg" class="avatar-preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 24 24' fill='%239ca3af'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E" alt="头像">
+                                <div class="avatar-btn-row">
+                                    <input type="file" id="avatarUpload" accept="image/jpeg,image/png" style="display:none">
+                                    <button type="button" class="avatar-upload-btn" id="uploadAvatarBtn"><i data-lucide="upload" style="width:12px;height:12px;"></i>上传</button>
+                                    <button type="button" class="avatar-upload-btn" id="clearAvatarBtn"><i data-lucide="x" style="width:12px;height:12px;"></i>移除</button>
+                                </div>
+                                <div style="font-size:11px;color:var(--gray-400);margin-top:8px;">支持 JPG / PNG</div>
+                            </div>
+                            <div class="basic-info-form" id="basicInfoForm"></div>
+                        </div>
+                    </section>
+                    <section id="educationSec" class="resume-section-editor">
+                        <div class="editor-section-header">
+                            <div class="editor-section-title"><i data-lucide="graduation-cap"></i>学历信息</div>
+                            <button class="add-btn" id="addEduBtn"><i data-lucide="plus" style="width:12px;height:12px;"></i>添加学历</button>
+                        </div>
+                        <div id="educationList" class="list-container"></div>
+                    </section>
+                    <section id="workSec" class="resume-section-editor">
+                        <div class="editor-section-header">
+                            <div class="editor-section-title"><i data-lucide="briefcase"></i>工作经历</div>
+                            <button class="add-btn" id="addWorkBtn"><i data-lucide="plus" style="width:12px;height:12px;"></i>添加工作</button>
+                        </div>
+                        <div id="workList" class="list-container"></div>
+                    </section>
+                    <section id="projectSec" class="resume-section-editor">
+                        <div class="editor-section-header">
+                            <div class="editor-section-title"><i data-lucide="layers"></i>项目经历</div>
+                            <button class="add-btn" id="addProjectBtn"><i data-lucide="plus" style="width:12px;height:12px;"></i>添加项目</button>
+                        </div>
+                        <div id="projectList" class="list-container"></div>
+                    </section>
+                    <section id="certSec" class="resume-section-editor">
+                        <div class="editor-section-header">
+                            <div class="editor-section-title"><i data-lucide="award"></i>证书 &amp; 技能</div>
+                            <button class="add-btn" id="addCertBtn"><i data-lucide="plus" style="width:12px;height:12px;"></i>添加</button>
+                        </div>
+                        <div id="otherList" class="list-container"></div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+</div><!-- end app-container -->
+
+<!-- PDF打印页（屏幕隐藏，打印时显示） -->
+<div id="pdf-print-page"></div>
+
+<!-- 离开确认弹窗 -->
+<div id="savePromptModal" class="modal-overlay" style="z-index:9998;">
+    <div class="modal-container" style="max-width:380px;">
+        <div class="modal-header" style="border-bottom:none;padding-bottom:8px;">
+            <h3 style="font-size:1rem;font-weight:700;">保存修改？</h3>
+        </div>
+        <div class="modal-body" style="padding-top:0;color:var(--gray-500);font-size:0.9rem;">
+            你有未保存的修改，离开前是否保存？
+        </div>
+        <div class="modal-actions" style="gap:8px;">
+            <button class="btn btn-outline" id="savePromptDiscard" style="flex:1;">不保存</button>
+            <button class="btn btn-primary" id="savePromptSave" style="flex:1;">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toastMsg" class="toast-msg">✓ 操作成功</div>
+
+<!-- ========== 通用模态框 ========== -->
+
+<!-- AI优化简历 -->
+<div id="aiModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header"><h3><i data-lucide="sparkles" style="width:20px;height:20px;display:inline-block;vertical-align:middle;margin-right:8px;"></i>AI优化简历</h3><button class="modal-close" id="closeAiModalBtn">&times;</button></div>
+        <div class="modal-body">
+            <div class="radio-group" id="resumeSourceGroup">
+                <label class="radio-option"><input type="radio" name="resumeSource" value="online" checked> 在线简历</label>
+                <label class="radio-option"><input type="radio" name="resumeSource" value="upload"> 上传简历文件</label>
+            </div>
+            <div id="onlineResumeSelectArea">
+                <select id="onlineResumeSelect" class="resume-select">
+                </select>
+            </div>
+            <div id="uploadResumeArea" style="display:none">
+                <div class="upload-area-ai" id="aiUploadArea">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">点击或拖拽上传 PDF 简历</div>
+                    <input type="file" id="aiResumeFile" accept=".pdf" style="display:none">
+                </div>
+                <div id="aiUploadPreview" style="font-size:12px;color:#6b7280;margin-top:8px;"></div>
+            </div>
+            <div class="form-group" style="margin:16px 0">
+                <label>目标岗位信息</label>
+                <textarea class="jd-input" id="jobDescription" placeholder="粘贴岗位描述（JD）...&#10;例如：高级产品经理，需要数据分析、用户增长经验..."></textarea>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" id="cancelAiBtn">取消</button>
+            <button class="btn btn-primary" id="startAnalyzeBtn">开始分析</button>
+        </div>
+    </div>
+</div>
+
+<!-- 投递详情 -->
+<div id="detailModal" class="modal-overlay">
+    <div class="modal-container" style="max-width:560px;">
+        <div class="modal-header" style="padding:20px 24px 16px;border-bottom:1px solid var(--gray-100);">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:var(--radius-md);background:var(--primary-50);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i data-lucide="briefcase" style="width:18px;height:18px;color:var(--primary-600);"></i>
+                </div>
+                <div>
+                    <div style="font-size:15px;font-weight:700;color:var(--gray-900);" id="modalCompanyName"></div>
+                    <div style="font-size:13px;color:var(--gray-500);" id="modalJobTitle"></div>
+                </div>
+            </div>
+            <button class="modal-close" id="closeModalBtn"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
+        </div>
+        <div class="modal-body" id="detailModalBody" style="padding:20px 24px;max-height:70vh;overflow-y:auto;"></div>
+    </div>
+</div>
+
+<!-- 跟进操作 -->
+<div id="followupModal" class="modal-overlay">
+    <div class="modal-container" style="max-width:500px;">
+        <div class="modal-header" style="padding:20px 24px 16px;border-bottom:1px solid var(--gray-100);background:linear-gradient(135deg,var(--primary-50),#f8fafc);">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:40px;height:40px;border-radius:var(--radius-md);background:linear-gradient(135deg,var(--primary-500),var(--primary-700));display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i data-lucide="message-square-plus" style="width:20px;height:20px;color:white;"></i>
+                </div>
+                <div>
+                    <div style="font-size:15px;font-weight:700;color:var(--gray-900);" id="followupCompanyName"></div>
+                    <div style="font-size:12px;color:var(--gray-500);margin-top:2px;" id="followupJobTitle"></div>
+                </div>
+            </div>
+            <button class="modal-close" id="closeFollowupModalBtn"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
+        </div>
+        <div class="modal-body" style="padding:20px 24px;">
+            <div style="display:flex;gap:12px;margin-bottom:16px;">
+                <div style="flex:1;padding:10px 14px;background:var(--gray-50);border-radius:var(--radius-md);border:1px solid var(--gray-200);">
+                    <span style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">当前阶段</span>
+                    <div style="font-size:14px;font-weight:600;color:var(--gray-800);margin-top:4px;" id="followupCurrentStage">—</div>
+                </div>
+            </div>
+            <div>
+                <label style="font-size:12px;font-weight:600;color:var(--gray-600);display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+                    <i data-lucide="pen-line" style="width:13px;height:13px;color:var(--primary-500);"></i>跟进日志
+                </label>
+                <textarea id="followupText" rows="5" style="width:100%;padding:12px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-md);font-size:14px;font-family:inherit;resize:vertical;line-height:1.6;outline:none;color:var(--gray-800);transition:border-color 0.2s;" placeholder="记录面试情况、沟通内容、下一步计划..."></textarea>
+            </div>
+        </div>
+        <div class="modal-actions" style="padding:14px 24px 20px;border-top:1px solid var(--gray-100);display:flex;align-items:center;gap:8px;">
+            <div style="display:flex;gap:6px;margin-right:auto;" id="terminalBtnsWrap">
+                <button class="btn btn-outline" id="markRejectedBtn" style="font-size:12px;padding:7px 12px;color:var(--error-600);border-color:var(--error-200);display:inline-flex;align-items:center;justify-content:center;gap:4px;"><i data-lucide="x-circle" style="width:13px;height:13px;"></i>已拒绝</button>
+                <button class="btn btn-outline" id="markEliminatedBtn" style="font-size:12px;padding:7px 12px;color:#92400e;border-color:#fde68a;display:inline-flex;align-items:center;justify-content:center;gap:4px;"><i data-lucide="alert-circle" style="width:13px;height:13px;"></i>已淘汰</button>
+            </div>
+            <button class="btn btn-outline" id="cancelFollowupBtn" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="x" style="width:14px;height:14px;"></i>取消</button>
+            <button class="btn btn-primary" id="saveFollowupBtn" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="check" style="width:14px;height:14px;"></i>保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- 新建投递 -->
+<div id="deliveryFormModal" class="modal-overlay">
+    <div class="modal-container" style="max-width:520px">
+        <div class="modal-header"><h3>新建投递</h3><button class="modal-close" id="closeFormModalBtn">&times;</button></div>
+        <div class="modal-body" style="padding:20px 24px;">
+            <div class="form-group"><label>公司 *</label><input type="text" id="formCompany" placeholder="例如：字节跳动"></div>
+            <div class="form-group"><label>岗位 *</label><input type="text" id="formJobTitle" placeholder="例如：产品经理"></div>
+            <div class="form-row">
+                <div class="form-group"><label>投递日期</label><input type="date" id="formPostDate"></div>
+                <div class="form-group"><label>工作地点</label><input type="text" id="formLocation" placeholder="例如：北京、上海、深圳"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>渠道</label><input type="text" id="formChannel" placeholder="例如：Boss直聘、内推、猎聘、官网"></div>
+                <div class="form-group"><label>期望薪资</label><input type="text" id="formSalary" placeholder="例如：25-35K"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>关联简历</label><select id="formResume"></select></div>
+                <div class="form-group"><label>投递链接</label><input type="url" id="formUrl" placeholder="https://..."></div>
+            </div>
+            <div class="form-group"><label>标签（多个用逗号分隔）</label><input type="text" id="formTags" placeholder="例如：大厂,上市,急聘"></div>
+            <div class="form-group"><label>首次跟进记录（可选）</label><textarea id="formFollowup" rows="2" placeholder="添加你的第一条跟进记录..."></textarea></div>
+        </div>
+        <div class="modal-actions" style="padding:14px 24px 20px;border-top:1px solid var(--gray-100);">
+            <button class="btn btn-outline" id="cancelFormBtn">取消</button>
+            <button class="btn btn-primary" id="confirmFormBtn"><i data-lucide="check" style="width:14px;height:14px;"></i>保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- 日程事件新建/编辑 -->
+<div id="eventModal" class="modal-overlay">
+    <div class="modal-container" style="max-width:520px">
+        <div class="modal-header"><h3 id="eventModalTitle">新建日程</h3><button class="modal-close" id="closeEventModalBtn">&times;</button></div>
+        <div class="modal-body" style="padding:20px 24px;">
+            <div class="form-row">
+                <div class="form-group"><label>日程类型 *</label>
+                    <select id="eventType">
+                        <option value="" disabled selected>请选择日程</option>
+                        <option value="笔试">笔试</option>
+                        <option value="一面">一面</option>
+                        <option value="二面">二面</option>
+                        <option value="三面">三面</option>
+                        <option value="Offer">Offer</option>
+                        <option value="其他">其他</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>关联投递 *</label>
+                    <select id="eventDeliveryId">
+                        <option value="">-- 请选择投递 --</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group"><label>标题 *</label><input type="text" id="eventTitle" placeholder="例如：字节跳动一面"></div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>面试方式 *</label>
+                    <div class="radio-group" style="margin-top:4px;">
+                        <label class="radio-option">
+                            <input type="radio" name="interviewMode" value="online" id="modeOnline" checked> 线上面试
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="interviewMode" value="offline" id="modeOffline"> 线下面试
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group"><label>日期 *</label><input type="date" id="eventDate"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>开始时间 *</label><input type="time" id="eventStartTime"></div>
+                <div class="form-group"><label>结束时间</label><input type="time" id="eventEndTime"></div>
+            </div>
+            <div class="form-group" id="eventLocationGroup"><label id="eventLocationLabel">面试链接</label><input type="text" id="eventLocation" placeholder="会议链接（如腾讯会议、Zoom）"></div>
+            <div class="form-row">
+                <div class="form-group"><label>提醒</label><select id="eventReminder"><option value="0">不提醒</option><option value="15">提前15分钟</option><option value="30">提前30分钟</option><option value="60">提前1小时</option><option value="1440">提前1天</option></select></div>
+                <div class="form-group"></div>
+            </div>
+            <div class="form-group"><label>备注</label><textarea id="eventNotes" rows="2" placeholder="补充说明..."></textarea></div>
+        </div>
+        <div class="modal-actions" style="padding:14px 24px 20px;border-top:1px solid var(--gray-100);">
+            <button class="btn btn-outline" id="cancelEventBtn">取消</button>
+            <button class="btn btn-primary" id="saveEventBtn"><i data-lucide="check" style="width:14px;height:14px;"></i>保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- 日程详情 -->
+<div id="calDetailModal" class="modal-overlay">
+    <div class="modal-container" style="max-width:440px;">
+        <div class="modal-header" style="padding:18px 22px 14px;border-bottom:1px solid var(--gray-100);">
+            <div style="display:flex;align-items:center;gap:9px;">
+                <div style="width:32px;height:32px;border-radius:var(--radius-sm);background:var(--primary-50);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i data-lucide="calendar-check" style="width:16px;height:16px;color:var(--primary-600);"></i>
+                </div>
+                <h3 style="font-size:14px;font-weight:700;color:var(--gray-900);">事件详情</h3>
+            </div>
+            <button class="modal-close" id="closeCalDetailBtn"><i data-lucide="x" style="width:15px;height:15px;"></i></button>
+        </div>
+        <div class="modal-body" id="calDetailBody" style="padding:16px 22px;font-size:13px;"></div>
+        <div class="modal-actions" style="padding:12px 22px 18px;border-top:1px solid var(--gray-100);gap:8px;">
+            <button class="btn btn-outline" id="editEventFromDetailBtn" style="display:flex;align-items:center;gap:5px;font-size:13px;"><i data-lucide="pencil" style="width:13px;height:13px;"></i>编辑</button>
+            <button class="btn btn-outline" id="toggleCompleteBtn" style="display:flex;align-items:center;gap:5px;font-size:13px;flex:1;justify-content:center;"><i data-lucide="circle-check" style="width:13px;height:13px;"></i><span id="toggleCompleteLabel">标记完成</span></button>
+            <button class="btn btn-outline" id="cancelEventFromDetailBtn" style="display:flex;align-items:center;gap:5px;font-size:13px;color:var(--gray-500);"><i data-lucide="x-circle" style="width:13px;height:13px;"></i>取消事件</button>
+        </div>
+    </div>
+</div>
+
+<!-- 详细内容查看 -->
+<div id="textViewerModal" class="modal-overlay" style="z-index:1100;">
+    <div class="modal-container" style="max-width:520px;">
+        <div class="modal-header" style="padding:18px 22px 14px;border-bottom:1px solid var(--gray-100);">
+            <div style="display:flex;align-items:center;gap:9px;">
+                <div style="width:32px;height:32px;border-radius:var(--radius-sm);background:var(--primary-50);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i data-lucide="file-text" style="width:16px;height:16px;color:var(--primary-600);"></i>
+                </div>
+                <h3 id="textViewerTitle" style="font-size:14px;font-weight:700;color:var(--gray-900);">详细内容</h3>
+            </div>
+            <button class="modal-close" id="closeTextViewerBtn"><i data-lucide="x" style="width:15px;height:15px;"></i></button>
+        </div>
+        <div class="modal-body" style="padding:18px 22px;max-height:60vh;overflow-y:auto;">
+            <div id="textViewerContent" style="font-size:14px;color:var(--gray-700);line-height:1.7;white-space:pre-wrap;word-break:break-word;"></div>
+        </div>
+        <div class="modal-actions" style="padding:12px 22px 18px;border-top:1px solid var(--gray-100);">
+            <button class="btn btn-primary" id="textViewerOkBtn" style="display:inline-flex;align-items:center;gap:6px;"><i data-lucide="check" style="width:14px;height:14px;"></i>关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- 在线简历编辑器模态 -->
+<div id="resumeEditorModal" class="modal-overlay" style="align-items:flex-start; padding:20px; overflow-y:auto;">
+    <div class="modal-container" style="max-width:480px;">
+        <h3 id="resumeModalTitle" style="font-size:1.4rem;margin-bottom:20px;padding:28px 28px 0 28px;"></h3>
+        <div id="resumeModalBody" style="padding:0 28px;"></div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" id="resumeModalCancelBtn">取消</button>
+            <button class="btn btn-primary" id="resumeModalConfirmBtn">确认</button>
+        </div>
+    </div>
+</div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/home.js"></script>
+    <script src="js/resume.js"></script>
+    <script src="js/delivery.js"></script>
+    <script src="js/calendar.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
