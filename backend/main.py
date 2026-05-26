@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from backend.database import init_db
 from backend.routes.api import router as api_router
+from backend.routes.ai_config import router as ai_router
 
 init_db()
 
@@ -21,6 +22,7 @@ app.add_middleware(
 )
 
 app.include_router(api_router)
+app.include_router(ai_router)
 
 FRONTEND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend")
 app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="static")
