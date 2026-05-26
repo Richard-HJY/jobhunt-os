@@ -34,7 +34,7 @@ chmod +x start.sh && ./start.sh
 
 ```bash
 pip install fastapi uvicorn pydantic python-multipart httpx
-python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
+python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 ```
 
 浏览器打开 `http://localhost:8000`。
