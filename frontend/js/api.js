@@ -60,7 +60,6 @@ async function loadFromServer() {
     buildKanbanColsFromDeliveries();
     syncFilterStageOptions();
     renderHome();
-    populateAiOnlineResumeSelect();
     window._appReady = true;
 
 }

@@ -39,7 +39,6 @@ document.getElementById('saveAllBtn').addEventListener('click', () => setTimeout
 
 document.addEventListener('DOMContentLoaded', function() {
     initDateYearClamp();
-    populateAiOnlineResumeSelect();
     // 等 Lucide 库加载完成后再启动，避免图标渲染失败
     function waitForLucideAndStart() {
         if (typeof lucide !== 'undefined') {

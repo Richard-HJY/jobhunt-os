@@ -25,6 +25,9 @@
             <a data-page="calendar">日程看板</a>
         </div>
         <div class="user-area">
+            <button class="icon-btn" id="openSettingsBtn" title="AI 设置">
+                <i data-lucide="settings" style="width:20px;height:20px;"></i>
+            </button>
             <button class="mobile-menu-btn" id="mobileMenuBtn">
                 <i data-lucide="menu" style="width:24px;height:24px;"></i>
             </button>
@@ -260,6 +263,9 @@
                     </div>
                 </div>
                 <div class="action-buttons">
+                    <button class="btn btn-outline" id="editorAiOptBtn">
+                        <i data-lucide="sparkles" style="width:15px;height:15px;"></i>AI优化
+                    </button>
                     <button class="btn btn-outline" id="saveAllBtn"><i data-lucide="save" style="width:15px;height:15px;"></i>保存</button>
                     <button class="btn btn-outline" id="exportEditorPdfBtn"><i data-lucide="download" style="width:15px;height:15px;"></i>导出PDF</button>
                 </div>
@@ -341,6 +347,7 @@
         </div>
         <div class="modal-actions" style="gap:8px;">
             <button class="btn btn-outline" id="savePromptDiscard" style="flex:1;">不保存</button>
+            <button class="btn btn-outline" id="savePromptCancel" style="flex:1;">取消</button>
             <button class="btn btn-primary" id="savePromptSave" style="flex:1;">保存</button>
         </div>
     </div>
@@ -351,35 +358,158 @@
 
 <!-- ========== 通用模态框 ========== -->
 
-<!-- AI优化简历 -->
-<div id="aiModal" class="modal-overlay">
-    <div class="modal-container">
-        <div class="modal-header"><h3><i data-lucide="sparkles" style="width:20px;height:20px;display:inline-block;vertical-align:middle;margin-right:8px;"></i>AI优化简历</h3><button class="modal-close" id="closeAiModalBtn">&times;</button></div>
-        <div class="modal-body">
-            <div class="radio-group" id="resumeSourceGroup">
-                <label class="radio-option"><input type="radio" name="resumeSource" value="online" checked> 在线简历</label>
-                <label class="radio-option"><input type="radio" name="resumeSource" value="upload"> 上传简历文件</label>
+<!-- ① AI 设置面板 -->
+<div id="aiSettingsPanel" class="modal-overlay">
+    <div class="modal-container" style="max-width:480px;">
+        <div class="modal-header">
+            <h3><i data-lucide="settings" style="width:18px;height:18px;vertical-align:middle;margin-right:8px;"></i>AI 服务配置</h3>
+            <button class="modal-close" id="closeSettingsBtn">&times;</button>
+        </div>
+        <div class="modal-body" style="display:flex;flex-direction:column;gap:16px;">
+            <div class="form-group">
+                <label>Base URL</label>
+                <input type="url" id="aiBaseUrl" class="form-input" placeholder="https://api.openai.com/v1">
             </div>
-            <div id="onlineResumeSelectArea">
-                <select id="onlineResumeSelect" class="resume-select">
-                </select>
-            </div>
-            <div id="uploadResumeArea" style="display:none">
-                <div class="upload-area-ai" id="aiUploadArea">
-                    <div class="upload-icon">📄</div>
-                    <div class="upload-text">点击或拖拽上传 PDF 简历</div>
-                    <input type="file" id="aiResumeFile" accept=".pdf" style="display:none">
+            <div class="form-group">
+                <label>API Key</label>
+                <div style="position:relative;">
+                    <input type="password" id="aiApiKey" class="form-input" placeholder="已保存（不回显）" style="padding-right:40px;">
+                    <button type="button" id="toggleKeyVisBtn" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray-400);">
+                        <i data-lucide="eye" style="width:16px;height:16px;" id="keyVisIcon"></i>
+                    </button>
                 </div>
-                <div id="aiUploadPreview" style="font-size:12px;color:#6b7280;margin-top:8px;"></div>
+                <div style="font-size:11px;color:var(--gray-400);margin-top:4px;">留空则保留已保存的 Key</div>
             </div>
-            <div class="form-group" style="margin:16px 0">
-                <label>目标岗位信息</label>
-                <textarea class="jd-input" id="jobDescription" placeholder="粘贴岗位描述（JD）...&#10;例如：高级产品经理，需要数据分析、用户增长经验..."></textarea>
+            <div class="form-group">
+                <label>模型名称</label>
+                <input type="text" id="aiModel" class="form-input" placeholder="gpt-5.4 / deepseek-v4-pro / ...">
+            </div>
+            <!-- 测试结果区 -->
+            <div id="aiTestResult" style="display:none;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:12px;font-size:13px;line-height:1.6;"></div>
+        </div>
+        <div class="modal-actions" style="gap:8px;">
+            <button class="btn btn-outline danger" id="clearAiConfigBtn" style="margin-right:auto;color:var(--error-600);border-color:var(--error-200);">
+                <i data-lucide="trash-2" style="width:14px;height:14px;"></i>清除配置
+            </button>
+            <button class="btn btn-outline" id="testAiConnBtn">
+                <i data-lucide="zap" style="width:14px;height:14px;"></i>测试连接
+            </button>
+            <button class="btn btn-primary" id="saveAiConfigBtn">
+                <i data-lucide="save" style="width:14px;height:14px;"></i>保存
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ② 整份简历批量优化工作区 -->
+<div id="aiWorkspacePanel" class="modal-overlay" style="z-index:9000;">
+    <div class="modal-container ai-workspace-container">
+        <!-- 顶栏 -->
+        <div class="ai-workspace-header">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <i data-lucide="sparkles" style="width:18px;height:18px;color:var(--primary-500);"></i>
+                <span style="font-weight:700;font-size:15px;">AI 优化工作区</span>
+                <span id="aiWorkspaceResumeName" style="font-size:13px;color:var(--gray-400);"></span>
+            </div>
+            <button class="modal-close" id="closeAiWorkspaceBtn">&times;</button>
+        </div>
+
+        <!-- 第一行：Tab + 开始按钮 -->
+        <div class="ai-workspace-row" style="display:flex;align-items:center;gap:12px;">
+            <div class="tab-group" id="aiModeTabGroup">
+                <button class="tab-btn active" data-mode="custom">
+                    <i data-lucide="pen-line" style="width:14px;height:14px;"></i>自定义优化
+                </button>
+                <button class="tab-btn" data-mode="jd">
+                    <i data-lucide="target" style="width:14px;height:14px;"></i>JD 匹配优化
+                </button>
+            </div>
+            <button class="btn btn-primary" id="startAiOptimizeBtn" style="margin-left:auto;">
+                <i data-lucide="sparkles" style="width:14px;height:14px;"></i>开始优化
+            </button>
+        </div>
+
+        <!-- 第二行：输入区（随 Tab 切换） -->
+        <div class="ai-workspace-row">
+            <textarea id="aiCustomInstruction" class="ai-textarea" placeholder="请输入优化指令，例如：突出数据驱动能力，语言更精炼..."></textarea>
+            <textarea id="aiJdInput" class="ai-textarea" placeholder="粘贴目标岗位描述（JD）..." style="display:none;"></textarea>
+        </div>
+
+        <!-- 第三行：优化范围勾选 -->
+        <div class="ai-workspace-row" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+            <span style="font-size:13px;font-weight:600;color:var(--gray-600);">优化范围：</span>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+                <input type="checkbox" id="scopeAll" style="cursor:pointer;"> 全选
+            </label>
+            <div id="aiScopeList" style="display:flex;gap:12px;flex-wrap:wrap;"></div>
+        </div>
+
+        <!-- 第四行：左右等宽两栏 -->
+        <div class="ai-workspace-body">
+            <!-- 左栏：原文预览 -->
+            <div class="ai-workspace-col">
+                <div class="ai-col-header">
+                    <i data-lucide="file-text" style="width:14px;height:14px;"></i>选中内容预览
+                </div>
+                <div id="aiOriginalPreview" class="ai-preview-area"></div>
+            </div>
+            <!-- 右栏：优化结果 -->
+            <div class="ai-workspace-col">
+                <div class="ai-col-header" style="display:flex;align-items:center;justify-content:space-between;">
+                    <span><i data-lucide="sparkles" style="width:14px;height:14px;"></i>优化结果</span>
+                    <button class="btn-apply btn-sm" id="applyAllAiBtn" style="display:none;">全部应用</button>
+                </div>
+                <div id="aiResultArea" class="ai-result-area">
+                    <div style="color:var(--gray-400);font-size:13px;text-align:center;padding:40px 0;">
+                        <i data-lucide="sparkles" style="width:32px;height:32px;display:block;margin:0 auto 12px;opacity:.3;"></i>
+                        勾选条目并点击「开始优化」
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="modal-actions">
-            <button class="btn btn-outline" id="cancelAiBtn">取消</button>
-            <button class="btn btn-primary" id="startAnalyzeBtn">开始分析</button>
+    </div>
+</div>
+
+<!-- ③ 单条精修弹窗 -->
+<div id="aiInlineModal" class="modal-overlay">
+    <div class="modal-container" style="max-width:520px;">
+        <div class="modal-header">
+            <h3 id="aiInlineTitle">AI 精修</h3>
+            <button class="modal-close" id="closeAiInlineBtn">&times;</button>
+        </div>
+        <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+            <!-- 模式切换 -->
+            <div class="tab-group" id="aiInlineModeGroup">
+                <button class="tab-btn active" data-mode="custom">
+                    <i data-lucide="pen-line" style="width:13px;height:13px;"></i>自定义优化
+                </button>
+                <button class="tab-btn" data-mode="jd">
+                    <i data-lucide="target" style="width:13px;height:13px;"></i>JD 匹配优化
+                </button>
+            </div>
+            <textarea id="aiInlineInput" class="ai-textarea" style="min-height:100px;" placeholder="输入优化指令..."></textarea>
+            <!-- 原文预览（只读） -->
+            <div>
+                <div style="font-size:12px;font-weight:600;color:var(--gray-500);margin-bottom:6px;">原文</div>
+                <div id="aiInlineOriginal" style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:10px;font-size:13px;color:var(--gray-600);max-height:160px;overflow:auto;white-space:pre-wrap;"></div>
+            </div>
+            <!-- 结果 -->
+            <div id="aiInlineResultWrap" style="display:none;">
+                <div style="font-size:12px;font-weight:600;color:var(--gray-500);margin-bottom:6px;">优化结果</div>
+                <div id="aiInlineResult" style="background:var(--primary-50);border:1px solid var(--primary-200);border-radius:var(--radius-md);padding:10px;font-size:13px;color:var(--gray-800);max-height:200px;overflow:auto;white-space:pre-wrap;"></div>
+            </div>
+        </div>
+        <div class="modal-actions" style="gap:8px;">
+            <button class="btn btn-outline" id="cancelAiInlineBtn">取消</button>
+            <button class="btn btn-outline" id="regenerateAiInlineBtn" style="display:none;">
+                <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i>重生成
+            </button>
+            <button class="btn btn-primary" id="runAiInlineBtn">
+                <i data-lucide="sparkles" style="width:13px;height:13px;"></i>开始优化
+            </button>
+            <button class="btn btn-primary" id="applyAiInlineBtn" style="display:none;">
+                <i data-lucide="check" style="width:13px;height:13px;"></i>应用
+            </button>
         </div>
     </div>
 </div>
@@ -589,7 +719,9 @@
     <script src="js/resume.js"></script>
     <script src="js/delivery.js"></script>
     <script src="js/calendar.js"></script>
-    <script src="js/ai.js"></script>
+    <script src="js/ai_config.js"></script>
+    <script src="js/ai_workspace.js"></script>
+    <script src="js/ai_inline.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

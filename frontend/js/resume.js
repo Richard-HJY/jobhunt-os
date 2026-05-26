@@ -87,6 +87,9 @@ function renderMasterCard() {
                 </div>
             </div>
             <div class="master-resume-actions">
+                <button class="btn btn-outline online-ai-btn" data-id="${res.id}">
+                    <i data-lucide="sparkles" style="width:15px;height:15px;"></i>AI优化
+                </button>
                 <button class="btn btn-outline online-delete-btn" data-id="${res.id}" style="color:var(--error-600);border-color:var(--error-200);"><i data-lucide="trash-2" style="width:15px;height:15px;"></i>删除</button>
                 <button class="btn btn-outline online-export-btn" data-id="${res.id}"><i data-lucide="download" style="width:15px;height:15px;"></i>导出PDF</button>
                 <button class="btn btn-primary online-edit-btn" data-id="${res.id}"><i data-lucide="edit-3" style="width:15px;height:15px;"></i>编辑</button>
@@ -143,6 +146,10 @@ function renderMasterCard() {
                 showToast(`已删除「${res.name}」`);
             }
         });
+    });
+
+    container.querySelectorAll('.online-ai-btn').forEach(btn => {
+        btn.addEventListener('click', () => openAiWorkspace(btn.dataset.id));
     });
 
     initLucideIcons();
@@ -796,6 +803,7 @@ function renderWork() {
                 </div>
                 <div class="card-actions">
                     <button class="card-action-btn edit-work" data-id="${item.id}"><i data-lucide="pencil"></i>编辑</button>
+                    <button class="card-action-btn ai-work-btn" data-id="${item.id}"><i data-lucide="sparkles"></i>AI优化</button>
                     <button class="card-action-btn hide-work" data-id="${item.id}"><i data-lucide="${item.hidden?'eye':'eye-off'}"></i>${item.hidden?'显示':'隐藏'}</button>
                     <button class="card-action-btn danger del-work" data-id="${item.id}"><i data-lucide="trash-2"></i>删除</button>
                 </div>
@@ -805,6 +813,9 @@ function renderWork() {
         </div>`).join('');
     initLucideIcons();
     document.querySelectorAll('.edit-work').forEach(b=>b.addEventListener('click',()=>editItem('work',b.dataset.id)));
+    document.querySelectorAll('.ai-work-btn').forEach(b =>
+        b.addEventListener('click', () => openAiInline('work', b.dataset.id))
+    );
     document.querySelectorAll('.hide-work').forEach(b=>b.addEventListener('click',()=>{const it=resumeData.work.find(i=>i.id===b.dataset.id);if(it){it.hidden=!it.hidden;markDirty();renderWork();showToast(it.hidden?'已隐藏':'已显示');}}));
     document.querySelectorAll('.del-work').forEach(b=>b.addEventListener('click',()=>{if(confirm('确定删除？')){resumeData.work=resumeData.work.filter(i=>i.id!==b.dataset.id);markDirty();renderWork();showToast('已删除');}}));
 }
@@ -819,6 +830,7 @@ function renderProject() {
                 </div>
                 <div class="card-actions">
                     <button class="card-action-btn edit-proj" data-id="${item.id}"><i data-lucide="pencil"></i>编辑</button>
+                    <button class="card-action-btn ai-proj-btn" data-id="${item.id}"><i data-lucide="sparkles"></i>AI优化</button>
                     <button class="card-action-btn hide-proj" data-id="${item.id}"><i data-lucide="${item.hidden?'eye':'eye-off'}"></i>${item.hidden?'显示':'隐藏'}</button>
                     <button class="card-action-btn danger del-proj" data-id="${item.id}"><i data-lucide="trash-2"></i>删除</button>
                 </div>
@@ -828,6 +840,9 @@ function renderProject() {
         </div>`).join('');
     initLucideIcons();
     document.querySelectorAll('.edit-proj').forEach(b=>b.addEventListener('click',()=>editItem('project',b.dataset.id)));
+    document.querySelectorAll('.ai-proj-btn').forEach(b =>
+        b.addEventListener('click', () => openAiInline('project', b.dataset.id))
+    );
     document.querySelectorAll('.hide-proj').forEach(b=>b.addEventListener('click',()=>{const it=resumeData.project.find(i=>i.id===b.dataset.id);if(it){it.hidden=!it.hidden;markDirty();renderProject();showToast(it.hidden?'已隐藏':'已显示');}}));
     document.querySelectorAll('.del-proj').forEach(b=>b.addEventListener('click',()=>{if(confirm('确定删除？')){resumeData.project=resumeData.project.filter(i=>i.id!==b.dataset.id);markDirty();renderProject();showToast('已删除');}}));
 }
@@ -1113,6 +1128,7 @@ function showEditorModal(type, item=null, presetEduType='') {
 }
 let editorDirty = false;
 let _resumeSnapshot = null; // deep copy of resumeData at editor entry, for discard
+let _editorSkipReset = false; // AI 工作区完毕后跳过 initEditor 重置
 function markDirty() { editorDirty = true; }
 
 // 离开编辑器时的保存确认
@@ -1161,6 +1177,25 @@ document.getElementById('savePromptDiscard').addEventListener('click', () => {
     editorDirty = false;
     _resumeSnapshot = null;
     if (_pendingBackAction) { _pendingBackAction(); _pendingBackAction = null; }
+});
+// 取消 — 关闭弹窗，留在编辑器
+document.getElementById('savePromptCancel').addEventListener('click', () => {
+    document.getElementById('savePromptModal').classList.remove('active');
+    _pendingBackAction = null;
+});
+// 点击遮罩层外部 → 等同于取消
+document.getElementById('savePromptModal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('savePromptModal')) {
+        document.getElementById('savePromptModal').classList.remove('active');
+        _pendingBackAction = null;
+    }
+});
+// ESC 关闭
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('savePromptModal').classList.contains('active')) {
+        document.getElementById('savePromptModal').classList.remove('active');
+        _pendingBackAction = null;
+    }
 });
 
 function saveBasicData() {
@@ -1270,6 +1305,15 @@ document.getElementById('resumeEditorModal').addEventListener('click', e => { if
 
 // 初始化编辑器数据（读取localStorage）
 function initEditor() {
+    if (_editorSkipReset) {
+        _editorSkipReset = false;
+        if (editingOnlineResumeId) {
+            const res = onlineResumes.find(r => r.id === editingOnlineResumeId);
+            if (res) document.getElementById('editorTitleBadge').textContent = res.name;
+        }
+        renderAllEditor();
+        return;
+    }
     editorDirty = false;
     if (editingOnlineResumeId) {
         // 编辑在线简历
@@ -1321,4 +1365,10 @@ function navigateTo(pageId) {
     if (pageId === 'calendar') { renderCalendar(); updateTodayReminders(); }
     if (pageId === 'resume-editor') initEditor();
 }
+
+// 编辑器顶部「AI优化」按钮
+document.getElementById('editorAiOptBtn').addEventListener('click', () => {
+    if (!editingOnlineResumeId) { showToast('请先打开一份在线简历', 'error'); return; }
+    openAiWorkspace(editingOnlineResumeId);
+});
 
