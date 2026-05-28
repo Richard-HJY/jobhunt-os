@@ -1,7 +1,7 @@
 // ============================================================
 // 后端持久化
 // ============================================================
-const _API = 'http://localhost:8000';
+const _API = '';
 
 function persist() {
     const eventsToSave = calendarEvents.map(ev => ({
@@ -19,8 +19,6 @@ function persist() {
         })
     })
     .then(r => r.json())
-    .then(() => {
-    })
     .catch(e => {
         console.error('[persist]', e);
     });
