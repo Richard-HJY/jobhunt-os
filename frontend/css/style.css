@@ -1960,3 +1960,152 @@ body {
 
 /* ── 自旋动画 ────────────────────────────────────────── */
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* ============================================================
+   AI 改动透明度 v2 — Diff 样式
+   ============================================================ */
+
+/* 改动高亮基础 */
+.diff-content {
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--gray-800);
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+/* 未改动部分 */
+.diff-unchanged {
+    color: var(--gray-700);
+}
+
+/* 改动包装：hover 显示 tooltip */
+.diff-change-wrap {
+    position: relative;
+    display: inline;
+}
+
+/* 删除的原文：红色删除线 */
+.diff-deleted {
+    background: #fde8e8;
+    color: #c0392b;
+    text-decoration: line-through;
+    border-radius: 2px;
+    padding: 0 2px;
+}
+
+/* 新增的文字：绿色高亮 */
+.diff-added {
+    background: #e6f9ed;
+    color: #1a7a3c;
+    border-radius: 2px;
+    padding: 0 2px;
+    margin-left: 2px;
+    font-weight: 500;
+}
+
+/* 改动理由小标签（内联，hover 时变醒目） */
+.diff-reason-tag {
+    display: inline-block;
+    font-size: 10px;
+    color: var(--primary-600);
+    background: var(--primary-50);
+    border: 1px solid var(--primary-200);
+    border-radius: 10px;
+    padding: 0 5px;
+    margin-left: 3px;
+    vertical-align: middle;
+    cursor: default;
+    transition: background 0.15s;
+}
+.diff-change-wrap:hover .diff-reason-tag {
+    background: var(--primary-100);
+}
+
+/* 图例 */
+.diff-legend {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    margin-bottom: 6px;
+}
+.legend-deleted { color: #c0392b; }
+.legend-added   { color: #1a7a3c; }
+
+/* 字段标题行 */
+.diff-field-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+.diff-field-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gray-500);
+}
+.diff-change-count {
+    font-size: 11px;
+    color: var(--primary-600);
+    background: var(--primary-50);
+    border: 1px solid var(--primary-200);
+    border-radius: 10px;
+    padding: 1px 8px;
+}
+
+/* 视图切换 Tab（对比/结果/原文）*/
+.diff-view-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+.diff-tab {
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--gray-200);
+    background: var(--gray-50);
+    color: var(--gray-500);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.diff-tab.active {
+    background: var(--primary-600);
+    color: #fff;
+    border-color: var(--primary-600);
+}
+.diff-tab:hover:not(.active) {
+    background: var(--gray-100);
+}
+
+/* 优化结果文字颜色 */
+.optimized-text { color: var(--gray-800); }
+.original-text  { color: var(--gray-500); }
+
+/* 单条精修弹窗内的 block 间距 */
+.inline-diff-block {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--gray-100);
+}
+.inline-diff-block:last-child {
+    margin-bottom: 0;
+    border-bottom: none;
+}
+
+/* 放弃按钮 */
+.ai-reject-btn {
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--gray-300);
+    background: transparent;
+    color: var(--gray-500);
+    cursor: pointer;
+}
+.ai-reject-btn:hover { background: var(--gray-100); }

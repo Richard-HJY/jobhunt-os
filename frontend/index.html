@@ -369,6 +369,7 @@
             <div class="form-group">
                 <label>Base URL</label>
                 <input type="url" id="aiBaseUrl" class="form-input" placeholder="https://api.openai.com/v1">
+                <div style="font-size:11px;color:var(--gray-400);margin-top:4px;">填写到 <code>/v1</code> 即可，无需加 <code>/chat/completions</code>。支持 OpenAI 兼容端点及 Anthropic 官方 API</div>
             </div>
             <div class="form-group">
                 <label>API Key</label>
@@ -382,7 +383,7 @@
             </div>
             <div class="form-group">
                 <label>模型名称</label>
-                <input type="text" id="aiModel" class="form-input" placeholder="gpt-5.4 / deepseek-v4-pro / ...">
+                <input type="text" id="aiModel" class="form-input" placeholder="gpt-4o / claude-sonnet-4-5 / deepseek-chat …">
             </div>
             <!-- 测试结果区 -->
             <div id="aiTestResult" style="display:none;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:12px;font-size:13px;line-height:1.6;"></div>
@@ -401,14 +402,14 @@
     </div>
 </div>
 
-<!-- ② 整份简历批量优化工作区 -->
+<!-- ② 整份简历批量优化工作区（同时支持单条精修） -->
 <div id="aiWorkspacePanel" class="modal-overlay" style="z-index:9000;">
     <div class="modal-container ai-workspace-container">
         <!-- 顶栏 -->
         <div class="ai-workspace-header">
             <div style="display:flex;align-items:center;gap:10px;">
                 <i data-lucide="sparkles" style="width:18px;height:18px;color:var(--primary-500);"></i>
-                <span style="font-weight:700;font-size:15px;">AI 优化工作区</span>
+                <span style="font-weight:700;font-size:15px;">AI 优化</span>
                 <span id="aiWorkspaceResumeName" style="font-size:13px;color:var(--gray-400);"></span>
             </div>
             <button class="modal-close" id="closeAiWorkspaceBtn">&times;</button>
@@ -457,7 +458,13 @@
             <div class="ai-workspace-col">
                 <div class="ai-col-header" style="display:flex;align-items:center;justify-content:space-between;">
                     <span><i data-lucide="sparkles" style="width:14px;height:14px;"></i>优化结果</span>
-                    <button class="btn-apply btn-sm" id="applyAllAiBtn" style="display:none;">全部应用</button>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <button class="btn-outline btn-sm" id="toggleRequestViewBtn" style="display:none;font-size:11px;padding:3px 10px;"
+                            onclick="document.getElementById('aiRequestView').style.display = document.getElementById('aiRequestView').style.display==='none' ? '' : 'none';">
+                            <i data-lucide="code-2" style="width:12px;height:12px;"></i>查看发送内容
+                        </button>
+                        <button class="btn-apply btn-sm" id="applyAllAiBtn" style="display:none;">全部应用</button>
+                    </div>
                 </div>
                 <div id="aiResultArea" class="ai-result-area">
                     <div style="color:var(--gray-400);font-size:13px;text-align:center;padding:40px 0;">
@@ -466,50 +473,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- ③ 单条精修弹窗 -->
-<div id="aiInlineModal" class="modal-overlay">
-    <div class="modal-container" style="max-width:520px;">
-        <div class="modal-header">
-            <h3 id="aiInlineTitle">AI 精修</h3>
-            <button class="modal-close" id="closeAiInlineBtn">&times;</button>
-        </div>
-        <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
-            <!-- 模式切换 -->
-            <div class="tab-group" id="aiInlineModeGroup">
-                <button class="tab-btn active" data-mode="custom">
-                    <i data-lucide="pen-line" style="width:13px;height:13px;"></i>自定义优化
-                </button>
-                <button class="tab-btn" data-mode="jd">
-                    <i data-lucide="target" style="width:13px;height:13px;"></i>JD 匹配优化
-                </button>
-            </div>
-            <textarea id="aiInlineInput" class="ai-textarea" style="min-height:100px;" placeholder="输入优化指令..."></textarea>
-            <!-- 原文预览（只读） -->
-            <div>
-                <div style="font-size:12px;font-weight:600;color:var(--gray-500);margin-bottom:6px;">原文</div>
-                <div id="aiInlineOriginal" style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:10px;font-size:13px;color:var(--gray-600);max-height:160px;overflow:auto;white-space:pre-wrap;"></div>
-            </div>
-            <!-- 结果 -->
-            <div id="aiInlineResultWrap" style="display:none;">
-                <div style="font-size:12px;font-weight:600;color:var(--gray-500);margin-bottom:6px;">优化结果</div>
-                <div id="aiInlineResult" style="background:var(--primary-50);border:1px solid var(--primary-200);border-radius:var(--radius-md);padding:10px;font-size:13px;color:var(--gray-800);max-height:200px;overflow:auto;white-space:pre-wrap;"></div>
-            </div>
-        </div>
-        <div class="modal-actions" style="gap:8px;">
-            <button class="btn btn-outline" id="cancelAiInlineBtn">取消</button>
-            <button class="btn btn-outline" id="regenerateAiInlineBtn" style="display:none;">
-                <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i>重生成
-            </button>
-            <button class="btn btn-primary" id="runAiInlineBtn">
-                <i data-lucide="sparkles" style="width:13px;height:13px;"></i>开始优化
-            </button>
-            <button class="btn btn-primary" id="applyAiInlineBtn" style="display:none;">
-                <i data-lucide="check" style="width:13px;height:13px;"></i>应用
-            </button>
         </div>
     </div>
 </div>
@@ -721,7 +684,6 @@
     <script src="js/calendar.js"></script>
     <script src="js/ai_config.js"></script>
     <script src="js/ai_workspace.js"></script>
-    <script src="js/ai_inline.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

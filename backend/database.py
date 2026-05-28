@@ -1,6 +1,7 @@
 """
 数据库模块 — SQLite 连接管理、建表、读写操作
 """
+
 import json
 import sqlite3
 import os
@@ -31,7 +32,9 @@ def get_connection():
 
 
 def init_db():
-    schema_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "database", "schema.sql")
+    schema_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "..", "database", "schema.sql"
+    )
     if os.path.exists(schema_path):
         with open(schema_path, "r", encoding="utf-8") as f:
             sql = f.read()
@@ -40,7 +43,9 @@ def init_db():
     else:
         with get_connection() as con:
             for table in ALLOWED_TABLES:
-                con.execute(f"CREATE TABLE IF NOT EXISTS {table} (id TEXT PRIMARY KEY, data TEXT NOT NULL)")
+                con.execute(
+                    f"CREATE TABLE IF NOT EXISTS {table} (id TEXT PRIMARY KEY, data TEXT NOT NULL)"
+                )
 
 
 def get_all(table: str) -> list:
@@ -67,28 +72,38 @@ def set_all(table: str, items: list):
 # ── AI 配置读写 ──────────────────────────────────────────────────────────────
 
 def get_ai_config() -> dict:
-    """返回 ai_config 的全部 key-value，api_key 替换为 hasKey bool"""
+    """返回前端安全视图：api_key 替换为 hasKey bool"""
     with get_connection() as con:
         rows = con.execute("SELECT cfg_key, cfg_value FROM ai_config").fetchall()
     cfg = {r[0]: r[1] for r in rows}
-    api_key_set = bool(cfg.get("api_key", "").strip())
     return {
         "baseUrl": cfg.get("base_url", ""),
         "model":   cfg.get("model", ""),
-        "hasKey":  api_key_set,
+        "hasKey":  bool(cfg.get("api_key", "").strip()),
     }
+
 
 def set_ai_config(base_url: str, api_key: str | None, model: str):
     """保存配置；api_key 为 None 时保持原值不变"""
     with get_connection() as con:
-        con.execute("INSERT OR REPLACE INTO ai_config(cfg_key,cfg_value) VALUES('base_url',?)", (base_url,))
-        con.execute("INSERT OR REPLACE INTO ai_config(cfg_key,cfg_value) VALUES('model',?)", (model,))
+        con.execute(
+            "INSERT OR REPLACE INTO ai_config(cfg_key,cfg_value) VALUES('base_url',?)", (base_url,)
+        )
+        con.execute(
+            "INSERT OR REPLACE INTO ai_config(cfg_key,cfg_value) VALUES('model',?)", (model,)
+        )
         if api_key is not None:
-            con.execute("INSERT OR REPLACE INTO ai_config(cfg_key,cfg_value) VALUES('api_key',?)", (api_key,))
+            con.execute(
+                "INSERT OR REPLACE INTO ai_config(cfg_key,cfg_value) VALUES('api_key',?)", (api_key,)
+            )
+
 
 def clear_ai_config():
     with get_connection() as con:
-        con.execute("UPDATE ai_config SET cfg_value='' WHERE cfg_key IN ('base_url','api_key','model')")
+        con.execute(
+            "UPDATE ai_config SET cfg_value='' WHERE cfg_key IN ('base_url','api_key','model')"
+        )
+
 
 def get_ai_config_for_server() -> dict:
     """内部使用，返回含明文 api_key 的完整配置"""

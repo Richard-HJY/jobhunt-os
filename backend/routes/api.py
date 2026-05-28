@@ -2,8 +2,15 @@
 API 路由 — /api/save 和 /api/load
 """
 from fastapi import APIRouter
-from backend.models import SaveBody
+from pydantic import BaseModel
 from backend.database import get_all, set_all
+
+
+class SaveBody(BaseModel):
+    deliveries: list = []
+    calendarEvents: list = []
+    onlineResumes: list = []
+    customResumes: list = []
 
 router = APIRouter(prefix="/api")
 
