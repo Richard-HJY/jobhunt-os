@@ -1489,41 +1489,12 @@ body {
 .action-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
 .editor-body { display: flex; flex: 1; min-width: 0; }
 
-/* 左侧大纲导航 */
-.outline-panel {
-    width: 220px; flex-shrink: 0;
-    background: var(--gray-50);
-    border-right: 1px solid var(--gray-200);
-    padding: 20px 12px;
-    position: sticky; top: 113px; align-self: flex-start;
-    height: calc(100vh - 113px); overflow-y: auto;
-}
-.outline-label {
-    font-size: 0.7rem; font-weight: 600; color: var(--gray-400);
-    letter-spacing: 0.08em; text-transform: uppercase;
-    padding: 0 12px; margin-bottom: 8px;
-}
-.outline-nav { list-style: none; }
-.outline-nav li { margin-bottom: 2px; }
-.outline-nav a {
-    display: flex; align-items: center; gap: 9px;
-    padding: 9px 12px; color: var(--gray-600);
-    text-decoration: none; border-radius: var(--radius-sm);
-    font-size: 0.875rem; font-weight: 500;
-    transition: all var(--transition-fast); cursor: pointer;
-}
-.outline-nav a svg { width: 15px; height: 15px; flex-shrink: 0; color: var(--gray-400); }
-.outline-nav a:hover { background: white; color: var(--primary-600); box-shadow: var(--shadow-sm); }
-.outline-nav a:hover svg { color: var(--primary-500); }
-.outline-nav a.active { background: var(--primary-50); color: var(--primary-700); font-weight: 600; }
-.outline-nav a.active svg { color: var(--primary-500); }
-
 /* 内容区 */
-.content-panel { flex: 1; padding: 32px 40px; overflow-y: auto; max-height: calc(100vh - 113px); min-width: 0; }
-.resume-section-editor { margin-bottom: 52px; scroll-margin-top: 24px; }
+.content-panel { width: 100%; padding: 24px; overflow-y: auto; max-height: calc(100vh - 113px); min-width: 0; }
+.resume-section-editor { margin-bottom: 32px; scroll-margin-top: 24px; }
 .editor-section-header {
     display: flex; justify-content: space-between; align-items: center;
-    padding-bottom: 12px; margin-bottom: 20px;
+    padding-bottom: 10px; margin-bottom: 14px;
     border-bottom: 2px solid var(--gray-100);
 }
 .editor-section-title {
@@ -1569,39 +1540,63 @@ body {
 }
 .detail-row strong { color: var(--gray-700); font-weight: 600; }
 
-/* 基本信息表单 */
-.basic-info-wrapper { display: flex; gap: 24px; flex-wrap: wrap; }
-.basic-info-form { flex: 1; min-width: 320px; }
-.basic-info-avatar {
-    width: 200px; flex-shrink: 0; text-align: center;
-    padding: 24px 16px; background: linear-gradient(135deg, var(--gray-50), #f8fafc);
+/* 基本信息 — 紧凑横排 */
+.basic-row {
+    display: flex; gap: 24px; align-items: flex-start;
+}
+.basic-avatar-col {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 6px; flex-shrink: 0; padding-top: 4px;
+}
+.basic-avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    object-fit: cover; border: 2px solid var(--gray-200);
+    background: #fff; display: block;
+}
+.basic-avatar-btn {
+    font-size: 11px; color: var(--gray-500); cursor: pointer;
+    background: none; border: none; padding: 2px 6px;
+    transition: color .15s;
+}
+.basic-avatar-btn:hover { color: var(--primary-600); }
+label.basic-avatar-btn { text-decoration: underline; }
+.basic-fields-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.basic-fields-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px 16px;
+}
+.bf { min-width: 0; }
+.bf label {
+    display: block; font-size: 11px; font-weight: 600;
+    color: var(--gray-500); margin-bottom: 3px;
+}
+.bf input,
+.bf select {
+    width: 100%; padding: 6px 8px;
     border: 1px solid var(--gray-200);
-    border-radius: var(--radius-xl); align-self: flex-start;
+    border-radius: 6px; font-size: 13px;
+    background: #fff; color: var(--gray-800);
+    transition: border-color .15s;
 }
-.avatar-preview {
-    width: 88px; height: 88px; border-radius: 50%;
-    object-fit: cover; border: 3px solid white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    background: #fff; margin-bottom: 14px; display: block; margin-inline: auto;
+.bf input:focus,
+.bf select:focus {
+    outline: none; border-color: var(--primary-500);
 }
-.avatar-btn-row { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
-.avatar-upload-btn {
-    background: #fff; padding: 6px 14px; border-radius: var(--radius-full);
-    font-size: 12px; cursor: pointer; border: 1px solid var(--gray-300);
-    color: var(--gray-600); transition: all var(--transition-fast);
-    display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+.bf input::placeholder { color: var(--gray-300); }
+.bf .field-hint {
+    font-size: 11px; color: var(--error-500);
+    margin-top: 2px; display: none;
 }
-.avatar-upload-btn:hover { background: var(--primary-50); border-color: var(--primary-300); color: var(--primary-600); }
-.form-row-inline { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 16px; }
-.form-field { min-width: 0; }
-.form-field label { display: block; font-size: 11px; font-weight: 600; color: var(--gray-500); margin-bottom: 6px; letter-spacing: 0.03em; text-transform: uppercase; }
-.form-field input, .form-field select {
-    width: 100%; padding: 9px 12px; border: 1.5px solid var(--gray-200);
-    border-radius: var(--radius-sm); font-size: 14px; background: white;
-    color: var(--gray-800); transition: all var(--transition-fast);
+@media (max-width: 900px) {
+    .basic-fields-grid { grid-template-columns: repeat(2, 1fr); }
 }
-.form-field input:focus, .form-field select:focus { outline: none; border-color: var(--primary-500); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-.form-field input::placeholder { color: var(--gray-300); }
+@media (max-width: 600px) {
+    .basic-row { flex-direction: column; align-items: center; }
+    .basic-fields-col { width: 100%; }
+    .basic-fields-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 400px) {
+    .basic-fields-grid { grid-template-columns: 1fr; }
+}
 .location-group { display: flex; gap: 6px; }
 .location-group select { flex: 1; }
 .modal-form-group { margin-bottom: 14px; }
@@ -1765,10 +1760,7 @@ body {
     .mobile-menu-btn { display: block; }
 }
 @media (max-width: 800px) {
-    .editor-body { flex-direction: column; }
-    .outline-panel { width: 100%; border-right: none; border-bottom: 1px solid #e2e8f0; }
     .content-panel { padding: 20px; max-height: none; }
-    .basic-info-wrapper { flex-direction: column; }
     .cal-day { min-height: 80px; font-size: 12px; }
 }
 @media (max-width: 640px) {

@@ -726,27 +726,36 @@ function renderBasic() {
     const statusOpts = ['','在职-看机会','离职-可随时到岗','在校学生'].map(s => `<option value="${s}" ${b.status===s?'selected':''}>${s||'请选择'}</option>`).join('');
     const ethnicityOpts = [''].concat(ethnicityList).map(e => `<option value="${e}" ${b.ethnicity===e?'selected':''}>${e||'请选择'}</option>`).join('');
     const politicalOpts = [''].concat(politicalStatusList).map(p => `<option value="${p}" ${b.politicalStatus===p?'selected':''}>${p||'请选择'}</option>`).join('');
+    const avatarSrc = b.avatarBase64 || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'120\' viewBox=\'0 0 24 24\' fill=\'%239ca3af\'%3E%3Cpath d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/%3E%3C/svg%3E';
     document.getElementById('basicInfoForm').innerHTML=`
-        <div class="form-row-inline" style="grid-template-columns:1fr 1fr 1fr 1fr;">
-            <div class="form-field"><label>姓名 *</label><input type="text" id="basicName" value="${escapeHtml(b.name)}" placeholder="请输入姓名"></div>
-            <div class="form-field"><label>性别</label><select id="basicGender">${genderOpts}</select></div>
-            <div class="form-field"><label>民族</label><select id="basicEthnicity">${ethnicityOpts}</select></div>
-            <div class="form-field"><label>政治面貌</label><select id="basicPoliticalStatus">${politicalOpts}</select></div>
+    <div class="basic-row">
+        <div class="basic-avatar-col">
+            <img id="avatarImg" class="basic-avatar" src="${avatarSrc}" alt="头像">
+            <label for="avatarUpload" class="basic-avatar-btn">更换</label>
+            <input type="file" id="avatarUpload" accept="image/jpeg,image/png" style="display:none">
+            <button type="button" id="clearAvatarBtn" class="basic-avatar-btn">移除</button>
         </div>
-        <div class="form-row-inline" style="grid-template-columns:1fr 1fr 1fr;">
-            <div class="form-field"><label>出生日期</label><input type="date" id="basicBirth" value="${escapeHtml(b.birth || new Date().toISOString().slice(0,10))}"></div>
-            <div class="form-field"><label>手机号 *</label><input type="tel" id="basicPhone" value="${escapeHtml(b.phone)}" placeholder="请输入11位手机号" maxlength="11" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,11)" onblur="validatePhone(this)"><div class="field-hint" id="phoneHint" style="font-size:11px;color:var(--error-500);margin-top:3px;display:none;">请输入以1开头的11位手机号</div></div>
-            <div class="form-field"><label>邮箱 *</label><input type="email" id="basicEmail" value="${escapeHtml(b.email)}" placeholder="请输入邮箱"></div>
+        <div class="basic-fields-col">
+            <div class="basic-fields-grid">
+                <div class="bf"><label>姓名</label><input type="text" id="basicName" value="${escapeHtml(b.name)}" placeholder="请输入姓名"></div>
+                <div class="bf"><label>性别</label><select id="basicGender">${genderOpts}</select></div>
+                <div class="bf"><label>出生日期</label><input type="date" id="basicBirth" value="${escapeHtml(b.birth || new Date().toISOString().slice(0,10))}"></div>
+                <div class="bf"><label>民族</label><select id="basicEthnicity">${ethnicityOpts}</select></div>
+            </div>
+            <div class="basic-fields-grid">
+                <div class="bf"><label>政治面貌</label><select id="basicPoliticalStatus">${politicalOpts}</select></div>
+                <div class="bf"><label>籍贯</label><input type="text" id="basicHometown" value="${escapeHtml(b.hometown||'')}" placeholder="例如：浙江杭州"></div>
+                <div class="bf"><label>现居地</label><input type="text" id="basicResidence" value="${escapeHtml(b.residence||'')}" placeholder="例如：上海"></div>
+                <div class="bf"><label>手机号</label><input type="tel" id="basicPhone" value="${escapeHtml(b.phone)}" placeholder="11位手机号" maxlength="11" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,11)" onblur="validatePhone(this)"><div class="field-hint" id="phoneHint">请输入以1开头的11位手机号</div></div>
+            </div>
+            <div class="basic-fields-grid">
+                <div class="bf"><label>邮箱</label><input type="email" id="basicEmail" value="${escapeHtml(b.email)}" placeholder="请输入邮箱"></div>
+                <div class="bf"><label>求职意向</label><input type="text" id="basicJobTarget" value="${escapeHtml(b.jobTarget)}" placeholder="例如：产品经理"></div>
+                <div class="bf"><label>工作年限</label><select id="basicWorkYears">${workYearsOpts}</select></div>
+                <div class="bf"><label>当前状态</label><select id="basicStatus">${statusOpts}</select></div>
+            </div>
         </div>
-        <div class="form-row-inline" style="grid-template-columns:1fr 1fr;">
-            <div class="form-field"><label>籍贯</label><input type="text" id="basicHometown" value="${escapeHtml(b.hometown||'')}" placeholder="例如：浙江杭州"></div>
-            <div class="form-field"><label>现居地</label><input type="text" id="basicResidence" value="${escapeHtml(b.residence||'')}" placeholder="例如：上海"></div>
-        </div>
-        <div class="form-row-inline" style="grid-template-columns:2fr 1fr 1fr;">
-            <div class="form-field"><label>求职意向</label><input type="text" id="basicJobTarget" value="${escapeHtml(b.jobTarget)}" placeholder="例如：产品经理、数据分析师"></div>
-            <div class="form-field"><label>工作年限</label><select id="basicWorkYears">${workYearsOpts}</select></div>
-            <div class="form-field"><label>当前状态</label><select id="basicStatus">${statusOpts}</select></div>
-        </div>`;
+    </div>`;
     if(b.avatarBase64) document.getElementById('avatarImg').src=b.avatarBase64;
 }
 
@@ -1291,13 +1300,12 @@ document.getElementById('saveAllBtn').addEventListener('click', () => {
     showToast('全部数据已保存');
 });
 document.getElementById('exportEditorPdfBtn').addEventListener('click', () => exportResumePdf());
-document.getElementById('uploadAvatarBtn').addEventListener('click', () => document.getElementById('avatarUpload').click());
-document.getElementById('avatarUpload').addEventListener('change', e => {
-    if(e.target.files&&e.target.files[0]){const r=new FileReader();r.onload=ev=>{document.getElementById('avatarImg').src=ev.target.result;resumeData.basic.avatarBase64=ev.target.result;};r.readAsDataURL(e.target.files[0]);}
+// 头像事件委托（元素由 renderBasic 动态创建）
+document.getElementById('basicInfoForm').addEventListener('change', e => {
+    if(e.target.id==='avatarUpload'&&e.target.files&&e.target.files[0]){const r=new FileReader();r.onload=ev=>{document.getElementById('avatarImg').src=ev.target.result;resumeData.basic.avatarBase64=ev.target.result;};r.readAsDataURL(e.target.files[0]);}
 });
-document.getElementById('clearAvatarBtn').addEventListener('click', () => { document.getElementById('avatarImg').src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 24 24' fill='%239ca3af'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E"; resumeData.basic.avatarBase64=null; });
-document.querySelectorAll('.outline-nav a').forEach(link => {
-    link.addEventListener('click', e => { e.preventDefault(); const sec=document.getElementById(link.dataset.section); if(sec){const panel=document.getElementById('editorContentPanel');panel.scrollTo({top:sec.offsetTop-20,behavior:'smooth'});} });
+document.getElementById('basicInfoForm').addEventListener('click', e => {
+    if(e.target.closest('#clearAvatarBtn')){document.getElementById('avatarImg').src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 24 24' fill='%239ca3af'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";resumeData.basic.avatarBase64=null;}
 });
 document.getElementById('resumeModalCancelBtn').addEventListener('click', () => document.getElementById('resumeEditorModal').classList.remove('active'));
 document.getElementById('resumeModalConfirmBtn').addEventListener('click', () => { if(modalConfirmHandler) modalConfirmHandler(); });

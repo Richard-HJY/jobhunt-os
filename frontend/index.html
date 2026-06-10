@@ -271,33 +271,9 @@
                 </div>
             </div>
             <div class="editor-body">
-                <div class="outline-panel">
-                    <div class="outline-label">内容导航</div>
-                    <ul class="outline-nav">
-                        <li><a data-section="basicInfoSec"><i data-lucide="user"></i>基本信息</a></li>
-                        <li><a data-section="educationSec"><i data-lucide="graduation-cap"></i>学历信息</a></li>
-                        <li><a data-section="workSec"><i data-lucide="briefcase"></i>工作经历</a></li>
-                        <li><a data-section="projectSec"><i data-lucide="layers"></i>项目经历</a></li>
-                        <li><a data-section="certSec"><i data-lucide="award"></i>证书 &amp; 技能</a></li>
-                    </ul>
-                </div>
                 <div class="content-panel" id="editorContentPanel">
                     <section id="basicInfoSec" class="resume-section-editor">
-                        <div class="editor-section-header">
-                            <div class="editor-section-title"><i data-lucide="user"></i>基本信息</div>
-                        </div>
-                        <div class="basic-info-wrapper">
-                            <div class="basic-info-avatar">
-                                <img id="avatarImg" class="avatar-preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 24 24' fill='%239ca3af'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E" alt="头像">
-                                <div class="avatar-btn-row">
-                                    <input type="file" id="avatarUpload" accept="image/jpeg,image/png" style="display:none">
-                                    <button type="button" class="avatar-upload-btn" id="uploadAvatarBtn"><i data-lucide="upload" style="width:12px;height:12px;"></i>上传</button>
-                                    <button type="button" class="avatar-upload-btn" id="clearAvatarBtn"><i data-lucide="x" style="width:12px;height:12px;"></i>移除</button>
-                                </div>
-                                <div style="font-size:11px;color:var(--gray-400);margin-top:8px;">支持 JPG / PNG</div>
-                            </div>
-                            <div class="basic-info-form" id="basicInfoForm"></div>
-                        </div>
+                        <div id="basicInfoForm"></div>
                     </section>
                     <section id="educationSec" class="resume-section-editor">
                         <div class="editor-section-header">
